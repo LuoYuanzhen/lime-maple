@@ -1,28 +1,24 @@
 
 # Limit numpy's number of threads
 import os
+
+from Code.MAPLE import MAPLE
+from Code.Misc import unpack_coefs, load_normalize_data
+
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
 # Base imports
 import itertools
 import json
 import math
-from multiprocessing import Pool
 import numpy as np
 import pandas as pd
 import scipy
 from scipy import stats
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPRegressor
 from sklearn.svm import SVR
 
-# Code imports
-import sys
-sys.path.insert(0, "/home/gregory/Desktop/MAPLE/Code/")
-
-from MAPLE import MAPLE
-from Misc import load_normalize_data, unpack_coefs
 
 from lime import lime_tabular
 
@@ -35,21 +31,25 @@ def fit_rf(X_train, y_train, X_test, y_test, n_estimators = 100, max_features = 
     rf.fit(X_train, y_train)
     return rf
 
+
 def fit_nn(X_train, y_train, X_test, y_test):
     nn = MLPRegressor(max_iter = 500)
     nn.fit(X_train, y_train)
     return nn
+
 
 def fit_svr(X_train, y_train, X_test, y_test):
     nn = SVR()
     nn.fit(X_train, y_train)
     return nn
 
-datasets = ["autompgs", "happiness", "winequality-red", "housing", "day", "crimes", "music", "communities"]
+
+datasets = ["housing"]
 trials = []
-for i in range(25):
+for i in range(1):
     trials.append(i + 1)
 args = itertools.product(trials, datasets)
+
 
 def run(args):
     # Hyperparamaters
@@ -124,11 +124,9 @@ def run(args):
     json.dump(out, file)
     file.close()
 
-pool = Pool(12)
-pool.map(run, args)
 
-#for i in args:
-#    run(i)
+run(args)
+
 
 ###
 # Merge Results
@@ -138,7 +136,7 @@ with open("Trials/" + datasets[0] + "_" + str(trials[0]) + ".json") as f:
     data = json.load(f)
 
 columns = list(data.keys())
-df = pd.DataFrame(0, index = datasets, columns = columns)
+df = pd.DataFrame(0, index=datasets, columns=columns)
 
 for dataset in datasets:
     for trial in trials:
